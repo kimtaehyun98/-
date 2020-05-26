@@ -1,0 +1,76 @@
+#include <iostream>
+using namespace std;
+
+/*선택 정렬 - 정렬 되지 않은 정수들 중에서 가장 작은 값을 찾아서 정렬된 리스트 다음 자리에 놓는다*/
+void Selection_sort(int* a, const int n) {
+	//n개의 정수로 이루어진 a[]배열을 오름차순으로 정렬 
+	for (int i = 0; i < n; i++) { 
+		int j = i;
+		for (int k = i + 1; k < n; k++) {
+			if (a[j] > a[k])j = k;   //a[j]에는 정렬되지 않은 정수들 중 가장 작은 값을 가지고 있게 됨
+		}
+		swap(a[i], a[j]);
+	}
+}
+
+/*이원 탐색 - 정렬 된 정수들 중에서 원하는 정수를 찾기 위한 코드, 내가 원하는 정수가 중간을 기점으로 큰지 작은지를 판단*/
+int Binary_Search(int* a, const int x, const int n) {
+	//n개의 정수로 이루어져 있고 오름차순으로 정렬되어있는 a[]배열에서 x를 찾기
+	int left = 0;
+	int right = n - 1; //left와 right를 각각 끝 값으로 정의
+	while (left <= right) { //같아지면 종료, 즉 같아지면 값을 찾게 됨
+		int middle = (left + right) / 2;
+		if (x < a[middle]) right = middle - 1; //x가 middle보다 작다면 범위를 반으로 줄여줌
+		else if (x > a[middle])left = middle + 1;
+		else return a[middle];
+	}
+	return -1; //x가 발견되지 않았을 때
+}
+
+/*순환 이원 탐색 - 이원 탐색 코드를 순환적으로 만들었을때의 코드 (순환이란 쉽게 말해 재귀함수를 뜻하는 말)*/
+int Binary_Search_recursive(int* a, const int x, const int left,const int right) {
+	if (left <= right) {
+		int middle = (left + right) / 2;
+		if (x < a[middle]) Binary_Search_recursive(a, x, left, middle - 1);  //자신을 다시 한번 호출하여 순환한다
+		else if (x > a[middle]) Binary_Search_recursive(a, x, middle + 1, right);
+		else return a[middle];
+	}
+	else return -1;
+}
+
+/*순환적 순열 생성기 - a[k] ~ a[m]에 대한 모든 순열을 생성하는 코드*/
+void Permutation(char* a, const int k, const int m) {
+	if (k == m) {
+		for (int i = 0; i <= m; i++) cout << a[i] << " ";
+		cout << endl;
+	}
+	else {
+		for (int i = k; i <= m; i++) {
+			swap(a[k], a[i]);           //순열을 생성하기 위해 위치를 바꿔줌
+			Permutation(a, k + 1, m);   //재귀함수를 통해 a[m-1]부터 순서를 바꿔줌
+			swap(a[k], a[i]);           //다시 원상태로 복귀 해 순열 생성
+		}
+	}
+	//즉 이 코드는 순열을 생성 할 때, 재귀함수를 통해 마지막 index까지 접근 후 마지막 부터 차례대로 바꿔가며 정렬
+	//ex) 1,2,3,4 라면 1,2,4,3 -> 1,3,2,4 -> 1,3,4,2 ->>>> 1부터 바꿔주는것이 아니고 마지막 index -1 부터 바꿔줌(재귀함수때문에) 
+}
+
+//실행 코드
+int main(void) {
+	int arr[10] = { 5,2,10,6,4,8,7,1,3,9 };
+	// 5개의 정수가 무작위로 되어 있는 배열 arr를 선택정렬 하는 코드
+	Selection_sort(arr, 10);
+	cout << "정렬 된 arr : ", '\n';
+	for (int i = 0; i < 10; i++) cout << arr[i]<<" "; //정렬 된 arr 출력
+	cout << '\n';
+	// 정렬된 arr에서 이원 탐색으로 x값 찾기 - x=7
+	cout << "정렬된 arr에서 이원 탐색으로 x값 찾기 - x=7 : ";
+	cout << Binary_Search(arr, 7, 10) << '\n';
+	// 정렬된 arr에서 순환 이원 탐색으로 x값 찾기 - x=8
+	cout << "정렬된 arr에서 순환 이원 탐색으로 x값 찾기 - x=8 : ";
+	cout << Binary_Search_recursive(arr, 8, 0, 9) << '\n';
+	// 순열 생성
+	cout << "1,2,3,4에 대한 순열입니다 :" << '\n';
+	char per[4] = { '1','2','3','4' };
+	Permutation(per, 0, 3);
+}
