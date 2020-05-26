@@ -8,7 +8,7 @@ using namespace std;
   STL을 잘 사용하면 훨씬 더 간편한 코드를 짤 수 있다.*/
 
 //STL의 #include <algorithm>의 accumulation(배열의 원소들의 합)과 multiplies(곱)을 사용한 배열의 곱셈을 반환하는 코드
-//작성해보다 알게 된 사실인데 accumulate를 사용하려면 #include <numeric>이 필요!!(교재가 아주 개판이야)
+//작성해보다 알게 된 사실인데 accumulate를 사용하려면 #include <numeric>이 필요!!
 int Product(int* a, int n) {
     int initVal = 1;
     return accumulate(a, a + n, initVal, multiplies<int>());
