@@ -1,0 +1,77 @@
+#include <iostream>
+using namespace std;
+
+/* 성능 분석과 측정 - 공간 복잡도 & 시간 복잡도
+  공간 복잡도 - 프로그램을 실행시켜 완료하는데 필요한 공간의 양
+  시간 복잡도 - 프로그램을 실행시켜 완료하는데 필요한 컴퓨터 시간의 양*/
+
+//공간 복잡도 -> 고정공간(c) + 가변공간(어떠한 변수, 인스턴스에 의해 결정되는 공간, Sp(I)
+
+float sum(float* a, const int n) {
+    float s = 0;
+    for (int i = 0; i < n; i++) s += a[i];
+    return s;
+}
+/* 함수 sum()에서는 배열의 원소수를 저장하기 위한 변수 n과 배열의 첫 원소 a[0] 의 주소를 저장하기 위한 변수 a가 필요하다.
+   따라서 함수 sum()의 공간요구량은 변수 n의 값과는 무관함을 알 수 있다. -from ppt */
+
+float Rsum(float* a, const int n) {
+    if (n <= 0) return 0;
+    else return (Rsum(a, n - 1) + a[n - 1]);
+}
+/*함수 rsum()을 한번 호출하는 경우 형식인자 a와 n, 반환값, 반환 주소 등을 저장 하기 위한 4개의 공간이 요구된다. 
+따라서 원소 수가 n인 배열의 원소 합을 구하기 위해서는 n+1회 의 함수 호출이 일어나므로 필요한 총 공간요구량은 4*(n+1)이 된다. -from ppt*/
+
+/*시간 복잡도 -> 프로그램 컴파일 시간 + 실행 시간(컴파일이 한번 완료 되면 그 후로는 컴파일 하지 않기 때문에 실행시간만 고려)
+  프로그램 단계 - 실행 시간이 인스턴스 특성에 구문적 또는 의미적으로 독립성을 갖는 프로그램 단위, 쉽게 말해 몇번의 단계를 거쳤는가.
+  count문으로 세 볼 수 있다.*/
+
+int cnt = 0; //단계를 세기 위한 전역변수
+float sum(float* a, const int n) {
+    float s = 0;
+    cnt++; 
+    for (int i = 0; i < n; i++) {
+        cnt++; //for문에 대한 cnt
+        s += a[i];
+        cnt++;//위의 지정문에 대한
+    }
+    cnt++; // return에 대한, return하기 전에 실행해줘야 됨
+    return s;
+}
+
+int cntR = 0;
+float Rsum(float* a, const int n) {
+    cntR++;//if의 조건문에 대한
+    if (n <= 0) {
+        cntR++; //return에 대한
+        return 0;
+    }
+    else {
+        cntR++; //return에 대한
+        return (Rsum(a, n - 1) + a[n - 1]);
+    }
+}
+
+//행렬의 덧셈 코드의 단계를 계산하는 코드
+int cntAdd = 0;
+void Add(int** a, int** b, int** c, int m, int n) {
+    for (int i = 0; i < m; i++) {
+        cntAdd++; //i for문에 대한
+        for (int j = 0; j < n; j++) {
+            cntAdd++;//j for문에 대한
+            c[i][j] = a[i][j] + b[i][j];
+            cntAdd++; // 위의 지정문에 대한
+        }
+        cntAdd++;//i for문의 마지막 조건문에 대한 증가
+    }
+    cntAdd++;//j for문의 마지막 조건문에 대한 증가
+}
+//교재 p.43에 요약되어 있음 꼭 다시 한번 보기
+
+/*점근 표기법 - 정확한 단계의 계산이 무의미 하기 때문에 평균,최대 수행 단계수를 구하는 방법
+  O(n) - f(n) <= c * g(n)이고, 모든 n이 n>n0 인 어떠한 n0와 c가 존재한다면, f(n)=O(g(n)) 이다.
+       - 가장 작은 g(n)을 O(n)으로 표시한다, n>n0인 모든 n에 대하여 f(n)의 상한 값은 g(n)이 된다.
+  Ω(n) - f(n) >= c * g(n)이고, 모든 n이 n>n0 인 어떠한 n0와 c가 존재한다면, f(n)=Ω(g(n)) 이다.
+        - n>n0인 모든 n에 대하여 f(n)의 하한 값은 g(n)이 된다.
+  Θ(n) - c1 * g(n) <= f(n) <= c2 * g(n)이고, 모든 n이 n>n0 인 어떠한 n0와 c1,c2가 존재한다면, f(n)=Θ(g(n)) 이다.
+        - 상한값과 하한값 모두 가짐*/
