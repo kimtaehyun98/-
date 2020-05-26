@@ -18,7 +18,7 @@ int Binary_Search(int* a, const int x, const int n) {
 	//n개의 정수로 이루어져 있고 오름차순으로 정렬되어있는 a[]배열에서 x를 찾기
 	int left = 0;
 	int right = n - 1; //left와 right를 각각 끝 값으로 정의
-	while (left <= right) { //같아지면 종료, 즉 같아지면 값을 찾게 됨
+	while (left <= right) { //left가 right보다 커지면 안됨, 같아지면 middle 값으로 return
 		int middle = (left + right) / 2;
 		if (x < a[middle]) right = middle - 1; //x가 middle보다 작다면 범위를 반으로 줄여줌
 		else if (x > a[middle])left = middle + 1;
