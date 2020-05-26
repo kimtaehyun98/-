@@ -1,4 +1,6 @@
 #include <iostream>
+#include <algorithm>
+#include <iterator>
 using namespace std;
 
 /* 성능 분석과 측정 - 공간 복잡도 & 시간 복잡도
@@ -27,7 +29,7 @@ float Rsum(float* a, const int n) {
   count문으로 세 볼 수 있다.*/
 
 int cnt = 0; //단계를 세기 위한 전역변수
-float sum(float* a, const int n) {
+float sum_cnt(float* a, const int n) {
     float s = 0;
     cnt++; 
     for (int i = 0; i < n; i++) {
@@ -40,7 +42,7 @@ float sum(float* a, const int n) {
 }
 
 int cntR = 0;
-float Rsum(float* a, const int n) {
+float Rsum_cnt(float* a, const int n) {
     cntR++;//if의 조건문에 대한
     if (n <= 0) {
         cntR++; //return에 대한
@@ -48,7 +50,7 @@ float Rsum(float* a, const int n) {
     }
     else {
         cntR++; //return에 대한
-        return (Rsum(a, n - 1) + a[n - 1]);
+        return (Rsum_cnt(a, n - 1) + a[n - 1]);
     }
 }
 
@@ -75,3 +77,46 @@ void Add(int** a, int** b, int** c, int m, int n) {
         - n>n0인 모든 n에 대하여 f(n)의 하한 값은 g(n)이 된다.
   Θ(n) - c1 * g(n) <= f(n) <= c2 * g(n)이고, 모든 n이 n>n0 인 어떠한 n0와 c1,c2가 존재한다면, f(n)=Θ(g(n)) 이다.
         - 상한값과 하한값 모두 가짐*/
+
+/*매직 스퀘어 - 자세한 설명은 p.49, 강의 1-6 30분20초에 있으며 가장 큰 특징은 알고리즘에 숫자를 채워야 할 위치가 n^2(n제곱, 행렬의 크기)
+  이므로 시간 복잡도는 O(n^2) 임을 알 수 있다
+  매직 스퀘어의 규칙은 대각선으로 올라가다 배열의 범위를 벗어나면 그 옆의 열에, 만약 채워 넣어야 할 자리에 이미 숫자가 있다면 아래 행에 입력*/
+
+void Magic(const int n) {
+    //크기가 n*n이며 이때 n은 홀수
+    const int MaxSize = 51;
+    int square[MaxSize][MaxSize], k, l;
+
+    //n의 값이 올바른지 검사 - maxsize보다 작아야 하고, 홀수여야 한다
+    if ((n > MaxSize) || (n < 1)) throw "Error! ... n out of range";
+    else if (!(n % 2)) throw "Error!...n is even";
+
+    //n이 조건을 만족 할 경우, Coxeter 규칙 사용 가능
+    for (int i = 0; i < n; i++) {
+        fill(square[i], square[i] + n, 0); //square을 0으로 초기화, memset 과 같은 함수
+    }
+    square[0][(n - 1) / 2] = 1;//첫 행의 중간 값은 1
+
+    int key = 2; int i = 0; int j = (n - 1) / 2; //처음 위치 설정, key는 행렬에 입력될 숫자
+    while (key <= n * n) {    //행렬의 범위 안에서만 숫자 입력
+        //왼쪽 위(대각선)으로 이동
+        if (i - 1 < 0) k = n - 1; else k = i - 1;  //행 계산 (범위를 벗어나면 n-1)
+        if (j - 1 < 0) l = n - 1; else l = j - 1;  //열 계산 (범위를 벗어나면 n-1)
+        if (square[k][l]) i = (i + 1) % n; //이미 채워진 숫자가 존재하므로 아래 행으로 이동
+        else {
+            i = k; j = l;
+        }
+        square[i][j] = key;  //행렬에 key값 채워넣기
+        key++;
+    }
+    //매직 스퀘어 출력
+    cout << "magic square of size" << n << endl;
+    for (i = 0; i < n; i++) {
+        copy(square[i], square[i] + n, ostream_iterator<int>(cout, " ")); //행렬의 한 행씩 한번에 출력, cout에 한 행씩 복사해 출력
+        cout << endl;
+    }
+}
+
+int main(void) {
+    Magic(5);
+}
