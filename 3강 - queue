@@ -54,6 +54,7 @@ void Queue<T>::Push(const T&x) {
 		else {//둘러싸서 - 원형 큐로 만듦
 			copy(queue + start, queue + start + capacity - 1, newQueue);
 			copy(queue, queue + rear + 1, newQueue + capacity - start);   //교재 p.129의 그림3.9를 봐야 이해할 수 있음
+			//방금 보다 안 사실인데 capacity - start = capacity - (front - 1) = capcaity - front - 1 도 맞다.(책에 나와있음)
 		}
 
 		//queue -> newqueue로 전환
