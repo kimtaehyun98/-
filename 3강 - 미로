@@ -1,0 +1,32 @@
+void path(const int p, const int m) {
+	//시작점은 1,1이다
+	mark[1][1] = 1; //check배열 같이 간 곳을 체크 해 준다
+	Stack<items>stacks(p * m); //q*m 크기의 미로
+	items temp = (1, 1, E); //처음 시작은 동쪽으로 출발하기 때문에
+	stacks.push(temp);
+
+	while (!stacks.IsEmpty()) {
+		temp = stack.Top();
+		stack.pop();
+		int i = temp.x; int j = temp.y; int d = temp.dir;
+		while (d < 8) {
+			int g = i + move[d].a;
+			int h = j + move[d].b;
+			if ((g == p) && (h == m)) {   //출구에 도착했을 때
+				//경로 출력
+				cout << stacks;
+				cout << i << "" << j << endl;//경로상의 마지막 두 위치
+				cout << m << "" << p << endl;
+				return;
+			}
+			if ((!maze[g][h]) && (!mark[g][h])) {//처음 가는 경로일 때(즉 길이 있을 때)
+				mark[g][h] = 1; //그 경로로 갔다는 표시
+				temp.x = i; temp.y = j; temp.dir = d + 1; //만약 길이 막혀 돌아온다면 d가 아니라 d의 다음번 방위부터 수행하기 위해
+				stacks.push(temp);
+				i = g; j = h; d = N;//d=N인 이유는 처음 가는 경로이므로 북쪽부터 순서대로 탐사하기 위해서, (g,h)로 이동
+			}
+			else d++;
+		}
+	}
+	cout << "No path in maze" << endl;
+}
