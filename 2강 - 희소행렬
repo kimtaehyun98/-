@@ -1,0 +1,44 @@
+//희소행렬 클래스는 따로 구현하지 않았다.
+//희소행렬의 전치
+
+SparseMatrix SparseMatrix::Transpose(int cols, int rows, int terms) {
+	SparseMatrix b(cols, rows, terms); //열이 cols개, 행이 rows개, 원소가 terms개인 희소행렬 선언
+	if (terms > 0) {
+		int currentB = 0;
+		for (int c = 0; c < cols; c++) {
+			for (int i = 0; i < terms; i++) {
+				if (smArray[i].col == c) {         //모든 원소들(smArray)를 돌며 가장 작은 col부터 b에 전치해서 입력
+					b.smArray[currentB].col = smArray[i].row;
+					b.smArray[currentB].row = c;
+					b.smArray[currentB++].value = smArray[i].value;
+				}
+			}
+		}
+	}
+	return b;
+}
+
+SparsiveMatrix SparsiveMatrix::FastTranspose() {
+	SparsiveMatrix b(cols, rows, terms);
+	if (terms > 0) {
+		int* rowSize = new int[cols];
+		int* rowStart = new int[cols];
+		fill(rowSize, rowSize + cols, 0); //밑의 for문을 실행하기 위해 rowSize 초기화
+		for (i = 0; i < terms; i++) {
+			rowSize[smArray[i].col]++; // 각 행에 몇개의 열이 들어있는지 count
+		}
+		//
+		rowStart[0] = 0;
+		for (int i = 1; i < cols; i++) {
+			rowStart[i] = rowStart[i - 1] + rowSize[i - 1];
+		} //위 코드를 작성한 이유는 rowStart 즉 b에 새로운 smArray를 만들 때 정렬해서 넣어주기 위해, 즉 행에 열이 몇개인지를
+		//rowsize를 통해 구하고, rowStart는 b.smArray에서 몇 번째 index에 넣을 건지를 알려주는 것이다.
+		for (i = 0; i < terms; i++) {
+			int j = rowStart[smArray[i].cols];//j는 smArray에서 (순서대로) col들이 몇번째 index에 들어가야 되는지를 rowSart를 통해 알아냄
+			b.smArray[j].row = smArray[i].col;
+			b.smArray[j].col = smArray[i].row;
+			b.smArray[j].value = smArray[i].value;
+			rowStart[smArray[i].col]++;
+		}
+	}
+}
