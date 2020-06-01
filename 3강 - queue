@@ -64,10 +64,8 @@ void Queue<T>::Push(const T&x) {
 		delete[] queue;
 		queue = newQueue;
 	}
-	else {
-		rear = (rear + 1) % capacity;
-		queue[rear] = x;
-	}
+	rear = (rear + 1) % capacity;
+	queue[rear] = x;
 }
 
 template <class T>
