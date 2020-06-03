@@ -1,0 +1,363 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+struct Term {
+    int coef;//계수
+    int exp;//차수,지수
+    Term Set(int c, int e) { coef = c; exp = e; return *this; };
+};
+
+class Chain;  //전방선언
+
+class ChainNode {
+    friend class Chain;
+    friend class Polynomial;
+public:
+    ChainNode(int element = 0, ChainNode* next = 0) //element와 next의 기정 값은 0
+    {
+        data.coef = 0;
+        data.exp = 0;
+        link = next;
+    }
+private:
+    Term data;
+    ChainNode* link;
+};
+
+class Polynomial; //전방선언
+
+class Chain {
+public:
+    friend class Polynomial;
+    friend istream& operator>>(istream&, Polynomial& poly);
+    void InsertBack(ChainNode** head, int coef, int exp);
+    Chain() { first = 0;};
+    //Chain을 위한 전방 반복자 - 공용 중첩 멤버 클래스로 선언
+    class ChainIterator {
+    public:
+        //생성자
+        ChainIterator(ChainNode* startNode = 0) { current = startNode; }
+        //역참조 연산자
+        Term& operator*() { return current->data; }
+        Term* operator->() { return &current->data; }
+        ChainNode* next() {
+            return current->link;
+        }
+        ChainNode* now() {
+            return current;
+        }
+        //증가
+        ChainIterator& operator++()//사전증가
+        {
+            current = current->link;
+            return*this;
+        }
+        ChainIterator operator++(int)//사후증가
+        {
+            ChainIterator old = *this;
+            current = current->link;
+            return old;
+        }
+        //동등검사
+        bool operator!=(ChainIterator right)
+        {
+            return current != right.current;
+        }
+        bool operator ==(ChainIterator right)
+        {
+            return current == right.current;
+        }
+    private:
+        ChainNode* current;
+    };
+    ChainIterator begin() { return ChainIterator(first); }
+    ChainIterator end() { return ChainIterator(0); }
+private:
+    ChainNode* first;
+    ChainNode* use = NULL;
+    ChainNode* last = NULL;
+    ChainNode* head = NULL;// 모든 노드의 기초 : NULL값
+};
+
+//리스트 맨 뒤에 노드 삽입
+//head노드를 이중포인터로 전달하는 이유 : head노드의 값이 아니라 주소값이 필요하기 때문.
+void Chain::InsertBack(ChainNode** head, int c, int e) {
+    //입력 노드 정의 
+    ChainNode* insertNode = new ChainNode;
+    //insertNode 구조체에 data 저장(data파트 저장)
+    insertNode->data.exp = e;
+    insertNode->data.coef = c;
+    //만약 head가 없으면 
+    if (*head == NULL) {
+        ChainNode* header = new ChainNode;
+        header->link = insertNode;
+        //입력된 노드를 head노드로 지정(첫 노드) 
+        *head = header;
+        //insertNode의 next를 null값 지정(head노드로 지정) 
+        insertNode->link = header;
+        first = *head;
+        last = insertNode;
+    }
+    //head노드가 존재하면.
+    else {
+        //insertNode가 맨 마지막 노드가 되어야 하므로, next에 head노드 위치 지정
+        insertNode->link = *head;
+        //맨 마지막 노드가 insertNode가 되어야 하므로 
+        last->link = insertNode;
+        //last포인터를 insertNode를 가리키게 변경
+        last = last->link;
+    }
+}
+
+class Polynomial {
+    friend class Chain;
+public:
+    Polynomial smultPoly(int c, int e);
+    int evalPoly(int ff);
+    void cout_over();
+    friend ostream& operator<<(ostream&, Polynomial& poly);
+    friend istream& operator>>(istream&, Polynomial& poly);
+    //******  '+' 연산자 오버로딩 코드   **********
+    Polynomial operator+(Polynomial& b) { //p.182
+        Chain::ChainIterator ai = poly.begin();
+        Chain::ChainIterator bi = b.poly.begin();
+        Polynomial c;
+        if (ai != 0)ai++;
+        bi++;
+        while (ai != 0 && bi != 0) {//노드가 비어있지 않음
+            if (ai == poly.head || bi == b.poly.head) break;
+            if (ai->exp == bi->exp) {
+                int sum = ai->coef + bi->coef;
+                if (sum != 0)c.poly.InsertBack(&c.poly.head, sum, ai->exp);
+                ai++; bi++;
+            }
+            else if (ai->exp < bi->exp) {
+                c.poly.InsertBack(&c.poly.head, bi->coef, bi->exp);
+                bi++;
+            }
+            else {
+                c.poly.InsertBack(&c.poly.head, ai->coef, ai->exp);
+                ai++;
+            }
+        }
+        while (ai != poly.head) {//나머지 복사
+            c.poly.InsertBack(&c.poly.head, ai->coef, ai->exp);
+            ai++;
+        }
+        while (bi != b.poly.head) {
+            c.poly.InsertBack(&c.poly.head, bi->coef, bi->exp);
+            bi++;
+        }
+        return c;
+    }
+    //******   '*' 연산자 오버로딩 코드   ***********
+    Polynomial operator*(Polynomial& poly2) {
+        Polynomial TT;
+        Polynomial temp;
+        Chain::ChainIterator bi = poly2.poly.begin();
+        bi++;
+        do {
+            temp = smultPoly(bi->coef, bi->exp);
+            TT = TT + temp;
+            bi++;
+        } while (bi != poly2.poly.first);
+        return TT;
+    }
+private:
+    Chain poly;
+};
+
+//***************  smultPoly함수  ***************
+Polynomial Polynomial::smultPoly(int cc, int ee) {
+    Chain::ChainIterator ai = poly.begin();
+    Polynomial d;
+    ai++;
+    do {
+        int s = ai->exp + ee;//차수끼리는 더하고
+        int t = ai->coef * cc;//계수끼리는 곱한다
+        d.poly.InsertBack(&d.poly.head, t, s);
+        ai++;
+    } while (ai != poly.first);
+    return d;
+}
+
+//******* '>>' 연산자 오버로딩 코드   **********
+istream& operator>>(istream& is, Polynomial& p) {
+    string str;
+    string tempp;
+    char check[100];
+    int tempexp;
+    int tempcoef;
+    int k = 0;
+    is >> str;
+    if (str == ".") {
+        exit(0);
+    }
+    int cnt = 0;
+    for (int i = 0; str[i] != NULL; i++) {
+        if (48 <= str[i] && str[i] <= 57) {
+            if (k % 2 == 0) {                              //계수 부분
+                tempp = str[i];
+                tempcoef = stoi(tempp);
+                k += 1;
+            }
+            else {                                         //지수부분
+                check[cnt] = str[i];
+                int newstop = 0;
+                for (int s = 0; s < cnt; s++) {            //계수(차수)가 같은게 입력되었을 때 ex.(1,3)(2,3)(1,1)이 입력되었을때 예외처리
+                    if (check[s] == str[i]) {
+                        tempp = str[i];
+                        tempexp = stoi(tempp);
+                        Chain::ChainIterator di = p.poly.begin();
+                        di++;
+                        while (di!=NULL && di != p.poly.head) {
+                            if (di->exp == tempexp) di->coef += tempcoef;
+                            di++;
+                        }
+                        k += 1;
+                        newstop = 1;
+                        break;
+                    }
+                }
+                cnt += 1;
+                if (newstop == 1) continue;
+                tempp = str[i];
+                tempexp = stoi(tempp);
+                p.poly.InsertBack(&p.poly.head, tempcoef, tempexp);
+                k += 1;
+            }
+        }
+    }
+    return is;
+}
+
+//******** cout << 연산자 오버로딩 코드 ***********
+ostream& operator<<(ostream& os, Polynomial& PolyPoly) {
+    PolyPoly.cout_over();
+    return os;
+}
+
+void Polynomial::cout_over() {
+    Chain::ChainIterator ai = poly.begin();
+    //노드의 교환을 통한 선택 정렬 코드
+    ChainNode* temp = NULL;
+    ChainNode* change = poly.head;
+    ChainNode* prevChange = change;   //change의 전 노드를 저장해 놓기 위한 포인터
+    ChainNode* prevTemp = NULL;       //temp의 전 노드를 저장해 놓기 위한 포인터
+    ChainNode* forPrevtemp = change;
+    poly.use = poly.head;
+    ai++;
+    while (ai != poly.head) {
+        int max = -1;
+        forPrevtemp = change;
+        prevChange = change;
+        change = change->link;
+        poly.use = change;
+        ai = poly.use;
+        while (ai != poly.head) {
+            if (ai == 0) break; //비어있으면 실행하지 않음
+            if (max < ai->exp) {
+                max = ai->exp;
+                temp = poly.use;
+                prevTemp = forPrevtemp;
+            }
+            ai++;
+            forPrevtemp = poly.use;
+            poly.use = ai.now();        //ai 전체를 탐색하는 포인터
+        }
+        if (change != temp) {
+            //바꿔야 될 두 노드와 값이 똑같은 노드를 각각 생성한다.
+            ChainNode* Aa = new ChainNode;
+            Aa->data.exp = change->data.exp;
+            Aa->data.coef = change->data.coef;
+            ChainNode* Bb = new ChainNode;
+            Bb->data.exp = temp->data.exp;
+            Bb->data.coef = temp->data.coef;
+            //새로 생성된 각 노드가 기존 연결리스트에서 다음 노드를 가리키게 한다.
+            Aa->link = temp->link;
+            Bb->link = change->link;
+            //교환해야 될 노드의 전 노드가 새로운 노드를 가리키게 한다.
+            prevChange->link = Bb;
+            if (prevTemp == change) prevTemp = Bb;
+            prevTemp->link = Aa;
+        }
+    }
+
+    ai = poly.begin();
+    while (ai != 0) {
+        ai++;
+        if (ai == poly.head) break;
+        if (ai->coef == 0) {
+            continue;
+        }
+        else if (ai->exp == 0) {
+            cout << ai->coef;
+        }
+        else if (ai->exp == 1) {
+            if (ai->coef == 1) {
+                cout << "x";
+                if (ai.next() && ai.next() != poly.head) {
+                    cout << "+";
+                }
+            }
+            else {
+                cout << ai->coef << "x";
+                if (ai.next() && ai.next() != poly.head) {
+                    cout << "+";
+                }
+            }
+        }
+        else {
+            if (ai->coef == 1) {
+                cout << "x^" << ai->exp;
+                if (ai.next() && ai.next() != poly.head) {
+                    cout << "+";
+                }
+            }
+            else {
+                cout << ai->coef << "x^" << ai->exp;
+                if (ai.next() && ai.next() != poly.head) {
+                    cout << "+";
+                }
+            }
+        }
+    }
+}
+
+//***** evalPoly함수 **************
+int Polynomial::evalPoly(int ff) {
+    int ans = 0;
+    int tempans = 1;
+    Chain::ChainIterator di = poly.begin();
+    di++;
+    while (di != poly.head) {
+        tempans = 1;
+        for (int j = 0; j < di->exp; j++) {
+            tempans = tempans * ff;//차수만큼 제곱하기
+        }
+        ans += (di->coef) * (tempans);
+        di++;
+    }
+    return ans;
+}
+
+int main() {
+    while (1) {
+        int x;
+        Polynomial a, b, c, d, t;
+        cin >> a;
+        cin >> b;
+        cin >> c;
+        cout << "A(x) = " << a << endl;
+        cout << "B(x) = " << b << endl;
+        cout << "C(x) = " << c << endl;
+        t = a * b;
+        d = t + c;
+        cout << "T(x) = " << t << endl;
+        cout << "D(x) = " << d << endl;
+        cin >> x;
+        cout << "x=" << x << "-->" << d.evalPoly(x) << endl;
+        x = 0;
+    }
+}
