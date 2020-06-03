@@ -1,0 +1,39 @@
+#include <iostream>
+using namespace std;
+
+//원형 리스트 맨 앞에 노드 삽입, 노드 생성(가용 리스트에서), 노드 반환(가용 리스트로), 리스트 전체 반환(가용 리스트로)
+
+template <class T>
+void CircularList<T>::InsertFront(const T& e) {
+	//원형리스트 *this의 앞에 원소 e를 삽입
+	//last는 이 리스트의 마지막 노드를 가리킨다.
+	ChainNode<T>* newNode = new ChainNode<T>(e);
+	if (last) { // 공백이 아닐때
+		newNode->link = last->link; //새 노드가 첫 노드를 가리키게 함
+		last->link = newNode; //마지막 노드가 새 노드를 가리키게 함
+	}
+	else {  //공백일 때
+		last = newNode; //새 노드가 마지막 노드가 됨
+		newNode->link = newNode; //자기 자신을 가리키게 해서 원형으로 만듦
+	}
+}
+
+//코드를 이해할 때 x가 노드 하나를 가리키고 있다는 것을 알고 있으면 좋다
+//즉 노드 생성과 반환은 노드 하나를 생성하고 반환하는 것이다.
+
+template <class T>
+ChainNode<T>* CircularList<T>::GetNode() {
+	//사용할 노드 생성
+	ChainNode<T>* x; //포인터 변수 생성
+	if (av) { x = av; av = av->link; } //av 리스트가 존재한다면 av에서 노드 가져오기
+	else x = new ChainNode<T>; //av 리스트가 존재하지 않으면 새로운 노드 동적할당
+	return x;
+}
+
+template <class T>
+void CircularList<T>::RetNode(ChainNode<T>*& x) {
+	//x가 가리키는 노드 반환
+	x->link = av; //x가 가리키는 노드를 av를 가리키게 함
+	av = x; //av포인터가 x가 가리키는 노드를 가리키게 함
+	x = 0; //x delete
+}
