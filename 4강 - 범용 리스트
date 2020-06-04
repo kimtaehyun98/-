@@ -1,0 +1,81 @@
+//범용 리스트를 이용한 순환 알고리즘 코드
+
+//리스트의 복사 - 순환 알고리즘
+//드라이버
+void GenList<T>::Copy(const GenList<T>& l)const {
+	first = Copy(l.first);
+}
+//작업 함수
+GenListNode<T>* GenList<T>::Copy(GenListNode<T>* p) {
+	//비 공용 서브리스트 p를 가진 비순환 리스트를 복사한다.
+	GenListNode<T>* q = 0;
+	if (p) {
+		q = new GenListNode<T>;
+		q->tag = p->tag; //tag를 통해서 down링크가 있는지 없는지 판단
+		if (p->tag)q->down = Copy(p->down); //down링크가 있다면 q로 down링크 복사
+		else q->data = p->data; //그렇지 않다면 data만 복사
+		q->next = Copy(p->next); //next도 복사(순환을 통해 없을 때가지 복사
+	}
+	return q;
+}
+
+//동등 비교 함수 - 순환 알고리즘
+//드라이버
+template <class T>
+bool operator==(const GenList<T>* l)const {
+	//*this와 l은 비순환 리스트이다.
+	//함수는 두 리스트가 똑같으면 true를 반환한다.
+	return Equal(first, l.first);
+}
+
+//작업 함수
+bool Equal(GenListNode<T>* s, GenListNode<T>* t) {
+	if ((!s) && (!t))return true;
+	if (s && t && (s->tag == t->tag))
+		if (s->tag)
+			return Equal(s->down, t->down) && Equal(s->next, t->next);
+		else return (s->data == t->data) && Equal(s->next, t->next);
+	return false;
+}
+
+//깊이 측정
+//드라이버
+template <class T>
+int GenList<T>::Depth() {
+	//비순환 리스트이 깊이 측정
+	return Depth(first);
+}
+
+template <class T>
+int GenList<T>::Depth(GenListNode<T>* s) {
+	if (!s)return(); //공백 리스트
+	GenListNode<T>* current = s;
+	int m = 0;
+	while (current) {
+		if (current->tag)m = max(m, Depth(current->down));
+		current = current->next;
+	}
+	return m + 1;
+}
+
+//리스트의 순환적 삭제
+//드라이버
+template <class T>
+GenList<T>::~GenList() {
+	//헤더 노드는 참조 계수를 가지고 있다.
+	if (first) {
+		Delte(first);
+		first = 0;
+	}
+}
+
+//작업함수
+void GenList<T>::Delete(GenListNode<T>* x) {
+	x->ref--; //헤더 노드의 참조 계수를 감소
+	if (!x->ref) {
+		GenListNode<T>* y = x;//y는 x의 톱 레벨을 순회
+		while (y->next) { y = y->next; if (y->tag == 1) Delte(y->down); }
+		y->next = av; // 톱 레벨 노드들을 av리스트에 첨가
+		av = x;
+	}
+}
