@@ -1,0 +1,86 @@
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+//희소행렬
+struct Triple { int row, col, value; };
+class Matrix; //전방선언
+class MatrixNode {
+	friend class Matrix;
+	friend istream& operator>>(istream&, Matrix&);//행렬의 판독
+private:
+	MatrixNode* down, * right;
+	bool head;
+	union {//이름이 없는 union
+		MatrixNode* next;
+		Triple triple;
+	};
+	MatrixNode(bool, Triple*);//생성자
+};
+MatrixNode::MatrixNode(bool b, Triple* t) {
+	head = b;
+	if (b) { right = down = this; }//row/column 헤더노드
+	else triple = *t; //헤더 노드 리스트를 위한 원소 노드 또는 헤더 노드
+}
+
+class Matrix {
+	friend istream& operator>>(istream&, Matrix&);
+public:
+	~Matrix();//파괴자
+private:
+	MatrixNode* headnode;
+};
+
+//희소 행렬의 입력
+istream& operator>>(istream& is, Matrix& matrix) {
+	Triple s;
+	is >> s.row >> s.col >> s.value; //행렬 차수
+	int p = max(s.row, s.col); //행과 열중 더 많은 것을 기준으로 헤더노드들을 생성하기 위함
+	matrix.headnode = new MatrixNode(false, &s); //헤더 노드의 헤더 노드 생성
+	if (p == 0) { matrix.headnode->right = matrix.headnode; return is; }//행렬이 비어있을 때
+	//적어도 하나의 행이나 하나의 열이 존재할 때
+	MatrixNode** head = new MatrixNode * [p];  
+	for (int i = 0; i < p; i++) {
+		head[i] = new MatrixNode(true, 0); // p 개의 헤더노드를 생성
+	}
+	int currentRow = 0;   
+	MatrixNode* last = head[0];
+
+	//s.value = non zero element, 0이 아닌 원소들의 수
+	for (int i = 0; i < s.value; i++) {
+		Triple t;
+		is >> t.row >> t.col >> t.value;
+		if (t.row > currentRow) {// 현재 행을 마감
+			last->right = head[currentRow]; //마지막 노드와 현재 행을 이어줌
+			currentRow = t.row; // 현재 행을 입력받은 새 행으로 바꾸어줌
+			last = head[currentRow]; // last가 현재행을 가리키게 함
+		}
+		last = last->right = new MatrixNode(false, &t); //다음 행을 입력할 새 노드 생성 및 last 포인터 이동
+		head[t.col]->next = head[t.col]->next->down = last; //열 리스트 닫기 - 원형으로 만들어 주기
+	}
+
+	last->right = head[currentRow]; //마지막 행을 닫기 - 원형으로 만들어주기
+	for (int i = 0; i < s.col; i++) head[i]->next->down = head[i];//모든 열 리스트 원형으로
+	//헤더 노드들을 모두 연결
+	for (int i = 0; i < p - 1; i++) head[i]->next = head[i + 1];
+	head[p - 1]->next = matrix.headnode; //마지막 headnode가 헤더노드의 헤더노드를 가리키게 해서 원형으로 만듦
+	matrix.headnode->right = head[0];// 헤더 노드의 헤더 노드가 첫 번째 헤더 노드를 가리킴
+	delete[]head;
+	return is;
+}
+
+//희소행렬의 삭제
+Matrix::~Matrix() {
+	//모든 노드들을 av리스트로 반환한다. 이 리스트는 right필드로 연결된 체인이다.
+	//av는 av리스트의 첫 번째 노드를 가리키는 정적 변수이다.
+	if (!headnode)return; //삭제할 노드가 존재하지 않을 때
+	MatrixNode* x = headnode->right;//x포인터가 헤더노드들의 리스트의 첫 번째 헤더노드를 가리킨다.
+	headnode->right = av; av = headnode; //headnode가 av리스트를 가리키게 한다.
+	while (x != headnode) {//행별로 삭제, 모든 행이 끝날 때 까지
+		MatrixNode* y = x->right; //x의 right가 행들을 연결해 놓은 원형 리스트 이므로 y는 x, 즉 그 행의 헤더노드를 가리킴
+		x->right = av; // av리스트와 행을 연결 시킴
+		av = y; //연결 시킨 행의 맨 앞을 av포인터로 가리킴 -> 즉 그 행을 av리스트로 반환
+		x = x->next; //다음 행으로 넘어감
+	}
+	headnode = 0;
+}
