@@ -1,0 +1,79 @@
+//이진 트리의 순회는 노드를 언제 방문하느냐에 따라서 구분 되며, 코드 역시 노드를 방문하는 부분만 다름을 알 수 있다.
+//이진 트리의 중위 순회
+template <class T> 
+void Tree<T>::Inorder() {
+	Inorder(root);
+}
+
+template <class T>
+void Tree<T>::Inorder(TreeNode<T>* currentNode) {
+	if (currentNode) {
+		Inorder(currentNode->leftChild);
+		Visit(currentNode);
+		Inorder(currentNode->rightChild);
+	}
+}
+
+//이진 트리의 전위 순회
+template <class T>
+void Tree<T>::Preorder() {
+	Preorder(root);
+}
+
+template <class T>
+void Tree<T>::Preorder(TreeNode<T>* currentNode) {
+	if (currentNode) {
+		Visit(currentNode);
+		Preorder(currentNode->leftChild);
+		Preorder(currentNode->rightChild);
+	}
+}
+
+//이진 트리의 전위 순회
+template <class T>
+void Tree<T>::Postorder() {
+	Postorder(root);
+}
+
+template <class T>
+void Tree<T>::Postorder(TreeNode<T>* currentNode) {
+	if (currentNode) {
+		Postorder(currentNode->leftChild);
+		Postorder(currentNode->rightChild);
+		Visit(currentNode);
+	}
+}
+
+//스택을 이용한 비순환 중위 순회
+template <class T>
+void Tree<T>::NonrecInorder() {
+	Stack<TreeNode<T>*>s;
+	TreeNode<T>* currentNode = root;
+}
+while (1) {
+	while (currentNode) { //왼쪽 자식들이 없을 때 까지 계속해서 스택에 삽입
+		s.Push(currentNode); //스택에 현재 노드 삽입
+		currentNode = currentNode->leftChild;
+	}
+	if (s.IsEmpty())return; //스택이 비어있다면 트리는 비어있음
+	currentNode = s.Top(); //스택의 탑을 현재노드로
+	s.Pop(); //스택에서 삭제
+	Visit(currentNode); //현재 노드 방문
+	currentNode = currentNode->rightChild; //오른쪽 자식 방문
+	}
+}
+
+//이진 트리의 레벨 순서 순회
+template <class T>
+void Tree<T>::LevelOrder() {
+	Queue<TreeNode<T>*>q;
+	TreeNode<T>* currentNode = root;
+	while (currentNode) {
+		Visit(currentNode); //노드 방문
+		if (currentNode->leftChild)q.Push(currentNode->leftChild); //왼쪽 자식 존재하면 왼쪽 자식을 큐에 삽입
+		if (currentNode->rightChild)q.Push(currentNode->rightChild); //오른쪽 자식 존재하면 오른족 자식을 큐에 삽입
+		if (q.IsEmpty())return; //큐가 비었으면 종료
+		currentNode = q.Front(); //큐의 가장 앞의 원소
+		q.Pop(); //약간 bfs랑 비슷한 느낌이다.
+	}
+}
