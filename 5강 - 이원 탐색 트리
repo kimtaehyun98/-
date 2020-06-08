@@ -1,0 +1,70 @@
+//이원 탐색 트리
+
+//이원 탐색 트리의 순환적 탐색
+template <class K,class E>
+pair<K, E>BST::Get(const K& k) {
+	return Get(root, k);
+}
+
+template <class K, E>::Get(TreeNode<pair<K, E>>* p, const K& k) {
+	if (!p)return 0;
+	if (k < p->data.first)return Get(p->leftChild, k);
+	if (k > p->data.first)return Get(p->rightChild, k);
+	return &p->data;
+}
+
+//이원 탐색 트리의 반복적 탐색
+template <class K,class E> 
+pair<K, E>* BST<K, E>::Get(const K& k) {
+	TreeNode <pair<K, E>>* currentNode = root;
+	while (currentNode) {
+		if (k < currentNode->data.first)
+			currentNode = currentNode->leftChild;
+		else if (k > currentNode->data.first)
+			currentNode = currentNode->rightChild;
+		else return &currentNode->data;
+	}
+	// 쌍이 없는 경우
+	return false;
+}
+
+//이원 탐색 트리의 순위에 의한 탐색
+//순위에 의한 탐색을 진행하려면 먼저 각 트리 노드에 leftSize라는 필드가 추가 되어야 한다.
+//leftSize 필드에는 해당 노드의 왼쪽 서브트리에 있는 원소 수 +1 에 해당하는 값을 가지고 있어야 한다.
+//이 코드는 r 번째로 작은 원소를 탐색하는 코드이다.
+template <class K,class E>
+pair<K, E>* BST<K, E>::RankGet(int r) {
+	TreeNode <pair<K, E>>* currentNode = root;
+	while (currentNode) {
+		if (r < currentNode->leftSize) currentNode = currentNode->leftChild;
+		else if (r > currentNode->leftSize) {
+			r -= currentNode->leftSize; //왼쪽 서브트리의 모든 순위보단 크기 때문에
+			currentNode = currentNode->rightChild;
+		}
+		else return &currentNode->data; //찾았을 때
+	}
+	return 0;
+}
+
+//이원 탐색 트리에서의 삽입
+template <class K,class E>
+void BST<K, E>::Insert(const pair<K, E>& thePair) {
+	//thePair 삽입
+	//Pair.first를 탐색, pp는 p의 부모
+	TreeNode<pair<K, E>>* p = root; *pp = 0;
+	while (p) {
+		pp = p;
+		if (thePair.first < p->data.first)p = p->leftChild;
+		else if (thePair.first > p->data.first)p = p->rightChild;
+		else (p->data.second = thePair.second; return;) //같은 원소가 있을 경우 갱신 후 종료
+	}
+	//pp에는 삽입해야 될 thePair의 부모 노드가 저장되어 있음
+
+	//삽입 수행
+	p = new TreeNode<pair<K, E>>(thePair);
+	if (root) { //트리가 공백이 아닐 때
+		if (thePair.first < pp->data.first)pp->leftChild = p;
+		else pp->rightChild = p;
+	}
+	else root = p;
+}
