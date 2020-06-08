@@ -1,0 +1,42 @@
+//히프
+//최대 히프에 삽입
+template <class T>
+void MaxHeap<T>::Push(const T& e) {
+	//최대 히프에 e삽입
+	if (heapSize == capacity) {
+		ChangeSize1D(heap, capacity, 2 * capacity);
+		capacity *= 2;
+	}
+	int currentNode = ++heapSize; //히프는 완전 이진 트리이기 때문에 삽입 될 위치가 명확함
+	while (currentNode != 1 && heap[currentNode / 2] < e) { //루트 노드가 아니고, 부모 노드의 값보다 현재 e가 클 때만
+		heap[currentNode] = heap[currentNode / 2]; //현재 노드를 부모 노드로 대체
+		currentnNode /= 2;
+	}
+	heap[currentNode] = e;
+}
+
+//최대 히프에서 삭제 - 루트 노드 삭제(최대 원소 삭제)
+templae <class T>
+void MaxHeap<T>::Pop(){
+	//최대 원소 삭제
+	if (IsEmpty())throw "heap is empty";
+	heap[1].~T();
+
+	//히프의 마지막 원소 제거
+	T lastE = heap[heapSize--]; //히프는 완전 이진 트리이므로 마지막 원소는 heapsize에 들어 있다.
+	//흘러내림 기법 사용
+	int currentNode = 1;
+	int child = 2; //currentNode의 자식
+	while (child <= heapSize) {
+		//child를 currentNode의 큰 자식으로 설정
+		if (child < heapSize && heap[child] < heap[child + 1])child++;//오른쪽 자식이 왼쪽 자식보다 큰 경우
+
+		//curretnNode에 lastE를 삽입할 수 있는가?
+		if (lastE >= heap[child])break; //삽입 가능(자식들 보다 크니까)
+
+		//삽입이 불가능 하다면
+		heap[currentNode] = heap[child]; //현재 노드를 자식 노드로 대체
+		currentNode = child; child *= 2; 
+	}
+	heap[currentNode = lastE];
+}
