@@ -1,0 +1,29 @@
+//스레드 이진 트리 관련 
+
+//스레드 이진 트리에서 중위 후속자를 반환
+T* ThreadedInorederItertator::Next() {
+	ThreadedNode<T>* temp = currentNode->rightChild;
+	if (!currentNode->rightThread) { //rightThread가 false 이면
+		//current의 오른쪽 자식부터 시작하여 leftThread가 True 일 때가지 왼쪽 자식 링크 탐색
+		while (!temp->leftThread)temp = temp->leftChild; 
+	}
+	currentNode = temp; //후속자가 temp임
+	if (currentNode == root)return 0; //후속자가 root라면 0반환
+	else return &currentNode->data; //아니라면 후속자 반환
+}
+
+//스레드 이진 트리에서 s의 오른쪽 자식으로 r을 삽입하는 코드
+template <class T>
+void ThreadedTree<T>::InsertRight(ThreadedNode<T>* s, ThreadedNode<T>* r) {
+	//right,left Thread 필드가 true이면 left,right Child가 후속자를 가리킨다.
+	r->rightThread = s->rightTread;
+	r->rightChild = s->rightChild;
+	r->leftThread = true;
+	r->leftChild = s;
+	s->rightThread = false;
+	s->rightChild = r;
+	if (!r->rightThread) { //r의 rightThread가 false일 때(r이 오른쪽 자식을 가지고 있을 때)
+		ThreadedNode<T>* temp = InorderSucc(r); //r의 중위 후속자를 temp로
+		temp->leftChild = r; //temp의 중위 선행자는 r이다.
+	}
+}
